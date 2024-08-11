@@ -1,6 +1,11 @@
-import os
-
-from aws_cdk import Stack, Stage, Environment, pipelines, aws_codepipeline
+from aws_cdk import (
+    Stack,
+    Stage,
+    Environment,
+    pipelines,
+    aws_codepipeline,
+    aws_iam as iam,
+)
 from constructs import Construct
 
 from aws_cdk_architecture.settings import Settings
@@ -24,6 +29,15 @@ class AwsCdkArchitectureStack(Stack):
 
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
+        ssm_policy = iam.PolicyStatement(
+            actions=["ssm:GetParameter"],
+            resources=[
+                (
+                    f"arn:aws:ssm:{Settings.CDK_DEFAULT_REGION}:{Settings.CDK_DEFAULT_ACCOUNT}:"
+                    f"parameter/cdk_architecture/*"
+                )
+            ],
+        )
 
         git_input = pipelines.CodePipelineSource.connection(
             repo_string=Settings.GITHUB_REPO,
@@ -49,6 +63,9 @@ class AwsCdkArchitectureStack(Stack):
             self_mutation=True,
             code_pipeline=code_pipeline,
             synth=synth_step,
+            code_build_defaults=pipelines.CodeBuildOptions(
+                role_policy=[ssm_policy]
+            )
         )
 
         deployment_wave = pipeline.add_wave(Settings.PIPELINE_WAVE_NAME)
