@@ -3,7 +3,9 @@ from aws_cdk import (
     Stack,
     aws_apigateway,
     aws_s3,
-    aws_cognito, CfnOutput,
+    aws_cognito,
+    CfnOutput,
+    RemovalPolicy,
 )
 from constructs import Construct
 
@@ -33,6 +35,7 @@ class ResourceStack(Stack):
                 email=True,
                 username=True,
             ),
+            removal_policy=RemovalPolicy.DESTROY,
         )
         auth = aws_apigateway.CognitoUserPoolsAuthorizer(
             self, "CognitoAuthorizer",
@@ -71,6 +74,8 @@ class ResourceStack(Stack):
             block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
             versioned=False,
             encryption=aws_s3.BucketEncryption.S3_MANAGED,
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
         )
 
         CfnOutput(
