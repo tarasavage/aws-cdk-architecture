@@ -2,6 +2,7 @@ from aws_cdk import (
     Duration,
     Stack,
     aws_apigateway,
+    aws_lambda,
     aws_s3,
     aws_cognito,
     CfnOutput,
@@ -24,7 +25,7 @@ class ResourceStack(Stack):
         )
         dragons_resource = api_gateway.root.add_resource("dragons")
         dragons_resource.add_method(
-            "ANY",
+            "GET",
             integration=aws_apigateway.MockIntegration(
                 integration_responses=[
                     aws_apigateway.IntegrationResponse(
@@ -34,6 +35,19 @@ class ResourceStack(Stack):
                         },
                     )
                 ]
+            ),
+        )
+        hello_world_lambda = aws_lambda.Function(
+            self, "HelloWorldLambda",
+            code=aws_lambda.Code.from_asset("lambda/hello_world"),
+            handler="hello_world.handler",
+            runtime=aws_lambda.Runtime.PYTHON_3_11,
+
+        )
+        dragons_resource.add_method(
+            "POST",
+            integration=aws_apigateway.LambdaIntegration(
+                hello_world_lambda,
             ),
         )
         user_pool = aws_cognito.UserPool(
