@@ -79,5 +79,6 @@ class AwsCdkArchitectureStack(Stack):
                         region=Settings.CDK_DEFAULT_REGION,
                     )
                 ),
-            )
+            ),
+            post=[pipelines.ManualApprovalStep("ApproveResourceDeployment")]
         )

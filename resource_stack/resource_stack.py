@@ -3,7 +3,9 @@ from aws_cdk import (
     Stack,
     aws_apigateway,
     aws_s3,
-    aws_cognito, CfnOutput,
+    aws_cognito,
+    CfnOutput,
+    RemovalPolicy,
 )
 from constructs import Construct
 
@@ -20,6 +22,20 @@ class ResourceStack(Stack):
             description="This service serves resources.",
             endpoint_types=[aws_apigateway.EndpointType.REGIONAL],
         )
+        dragons_resource = api_gateway.root.add_resource("dragons")
+        dragons_resource.add_method(
+            "ANY",
+            integration=aws_apigateway.MockIntegration(
+                integration_responses=[
+                    aws_apigateway.IntegrationResponse(
+                        status_code="200",
+                        response_templates={
+                            "application/json": '{"message": "hello dragons"}'
+                        },
+                    )
+                ]
+            ),
+        )
         user_pool = aws_cognito.UserPool(
             self, "CognitoUserPool",
             account_recovery=aws_cognito.AccountRecovery.EMAIL_ONLY,
@@ -33,6 +49,7 @@ class ResourceStack(Stack):
                 email=True,
                 username=True,
             ),
+            removal_policy=RemovalPolicy.DESTROY,
         )
         auth = aws_apigateway.CognitoUserPoolsAuthorizer(
             self, "CognitoAuthorizer",
@@ -71,6 +88,8 @@ class ResourceStack(Stack):
             block_public_access=aws_s3.BlockPublicAccess.BLOCK_ALL,
             versioned=False,
             encryption=aws_s3.BucketEncryption.S3_MANAGED,
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
         )
 
         CfnOutput(
