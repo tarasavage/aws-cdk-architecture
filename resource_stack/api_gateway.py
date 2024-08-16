@@ -111,7 +111,11 @@ class ApiGatewayConstruct(Construct):
                         },
                     )
                 ],
+                request_templates={
+                    "application/json": '{"statusCode": 200}'
+                },
             ),
+            method_responses=[aws_apigateway.MethodResponse(status_code="200")],
         )
 
     @property
