@@ -1,6 +1,5 @@
 from aws_cdk import (
     aws_apigateway,
-
 )
 from constructs import Construct
 
@@ -98,6 +97,49 @@ class ApiGatewayConstruct(Construct):
           #end
         ]
         """
+        dragon_model = self.api.add_model(
+            "DragonModel",
+            model_name="DragonModel",
+            content_type="application/json",
+            schema=aws_apigateway.JsonSchema(
+                schema=aws_apigateway.JsonSchemaVersion.DRAFT7,
+                title="dragon",
+                type=aws_apigateway.JsonSchemaType.OBJECT,
+                properties={
+                    "dragonName": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.STRING,
+                        min_length=4,
+                    ),
+                    "family": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.STRING,
+                        enum=["red", "blue", "green", "yellow", "black", "white"],
+                    ),
+                    "description": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.STRING,
+                        default="This is a dragon.",
+                    ),
+                    "city": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.STRING
+                    ),
+                    "state": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.STRING
+                    ),
+                    "country": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.STRING
+                    ),
+                    "neighborhood": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.STRING
+                    ),
+                    "reportingPhoneNumber": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.STRING
+                    ),
+                    "confirmationRequired": aws_apigateway.JsonSchema(
+                        type=aws_apigateway.JsonSchemaType.BOOLEAN
+                    ),
+                },
+                required=["dragonName", "family", "description"],
+            ),
+        )
 
         dragons_resource = self.api.root.add_resource("dragons")
         dragons_resource.add_method(
@@ -106,16 +148,47 @@ class ApiGatewayConstruct(Construct):
                 integration_responses=[
                     aws_apigateway.IntegrationResponse(
                         status_code="200",
+                        response_templates={"application/json": vtl_template},
+                    )
+                ],
+                request_templates={"application/json": '{"statusCode": 200}'},
+            ),
+            method_responses=[aws_apigateway.MethodResponse(status_code="200")],
+        )
+        dragons_resource.add_method(
+            "POST",
+            integration=aws_apigateway.MockIntegration(
+                integration_responses=[
+                    aws_apigateway.IntegrationResponse(
+                        status_code="200",
                         response_templates={
-                            "application/json": vtl_template
+                            "application/json": """
+                                {
+                                  "hello": "world",
+                                  "dragon_name": "$input.path('$.dragonName')",
+                                  "family": "$input.path('$.family')",
+                                  "description": "$input.path('$.description')",
+                                  "city": "$input.path('$.city')",
+                                  "state": "$input.path('$.state')",
+                                  "country": "$input.path('$.country')",
+                                  "neighborhood": "$input.path('$.neighborhood')",
+                                  "reportingPhoneNumber": "$input.path('$.reportingPhoneNumber')",
+                                  "confirmationRequired": "$input.path('$.confirmationRequired')"
+                                }
+                                """,
                         },
                     )
                 ],
-                request_templates={
-                    "application/json": '{"statusCode": 200}'
-                },
+                request_templates={"application/json": '{"statusCode": 200}'},
             ),
             method_responses=[aws_apigateway.MethodResponse(status_code="200")],
+            request_validator=aws_apigateway.RequestValidator(
+                self, "DragonPostValidator",
+                rest_api=self.api,
+                validate_request_body=True,
+                validate_request_parameters=False,
+            ),
+            request_models={"application/json": dragon_model},
         )
 
     @property
