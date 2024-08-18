@@ -11,7 +11,7 @@ class LambdaConstruct(Construct):
 
         self.create_lambda = aws_lambda.Function(
             self, "CreateDragonLambda",
-            handler="lambda.endpoints.create_dragon.create_dragon.lambda_handler",
+            handler="create_dragon.lambda_handler",
             code=aws_lambda.Code.from_asset("lambda/endpoints/create_dragon/"),
             environment={"TABLE_NAME": table.table_name},
             runtime=aws_lambda.Runtime.PYTHON_3_11,
