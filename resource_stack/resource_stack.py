@@ -5,6 +5,8 @@ from aws_cdk import (
 from constructs import Construct
 
 from resource_stack.api_gateway import ApiGatewayConstruct
+from resource_stack.dynamodb import DynamoDB
+from resource_stack.aws_lambda import LambdaConstruct
 
 
 class ResourceStack(Stack):
@@ -12,7 +14,18 @@ class ResourceStack(Stack):
         super().__init__(scope, construct_id, **kwargs)
 
         api_gateway = ApiGatewayConstruct(self, "ApiGatewayConstruct")
+        dragon_table = DynamoDB(self, "DynamoDBConstruct")
+        create_dragon_lambda = LambdaConstruct(
+            self, "LambdaConstruct",
+            table=dragon_table.table
+        )
+        dragon_table.table.grant_write_data(create_dragon_lambda.create_lambda)
 
+        CfnOutput(
+            self, "DynamoDBTableName",
+            value=dragon_table.table.table_name,
+            export_name="DynamoDBTableName",
+        )
         CfnOutput(
             self, "ApiGatewayOutput",
             value=api_gateway.url,
