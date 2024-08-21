@@ -9,7 +9,7 @@ class LambdaConstruct(Construct):
     def __init__(self, scope: Construct, construct_id: str, table: aws_dynamodb.Table) -> None:
         super().__init__(scope, construct_id)
 
-        self.create_lambda = aws_lambda.Function(
+        self.create_dragon_lambda = aws_lambda.Function(
             self, "CreateDragonLambda",
             handler="create_dragon.lambda_handler",
             code=aws_lambda.Code.from_asset("lambda/endpoints/create_dragon/"),
@@ -19,4 +19,4 @@ class LambdaConstruct(Construct):
 
     @property
     def function(self) -> aws_lambda.Function:
-        return self.create_lambda
+        return self.create_dragon_lambda

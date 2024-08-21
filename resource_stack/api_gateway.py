@@ -1,9 +1,11 @@
 from aws_cdk import (
     aws_apigateway,
+    aws_dynamodb,
 )
 from constructs import Construct
 
 from aws_cdk_architecture.settings import Settings
+from resource_stack.aws_lambda import LambdaConstruct
 
 GET_DRAGON_LIST_TEMPLATE = """
 [
@@ -89,16 +91,17 @@ GET_DRAGON_LIST_TEMPLATE = """
 
 
 class ApiGatewayConstruct(Construct):
-    def __init__(self, scope: Construct, construct_id: str) -> None:
+    def __init__(self, scope: Construct, construct_id: str, dragon_table: aws_dynamodb.Table) -> None:
         super().__init__(scope, construct_id)
 
+        self.dragon_table = dragon_table
         self.api = aws_apigateway.RestApi(
-            self,
-            Settings.RESOURCE_API_GATEWAY_ID,
+            self, Settings.RESOURCE_API_GATEWAY_ID,
             rest_api_name=Settings.RESOURCE_API_GATEWAY_NAME,
             description="This service serves resources.",
             endpoint_types=[aws_apigateway.EndpointType.REGIONAL],
         )
+
         dragon_model = self.api.add_model(
             "DragonModel",
             model_name="DragonModel",
@@ -143,8 +146,38 @@ class ApiGatewayConstruct(Construct):
             ),
         )
 
-        dragons_resource = self.api.root.add_resource("dragons")
-        dragons_resource.add_method(
+        dragon_resource = self.api.root.add_resource("dragons")
+        create_dragon_lambda = LambdaConstruct(
+            self, "LambdaConstruct",
+            table=self.dragon_table
+        )
+        self.dragon_table.grant_write_data(create_dragon_lambda.function)
+        dragon_resource.add_method(
+            "POST",
+            integration=aws_apigateway.LambdaIntegration(
+                create_dragon_lambda.function,
+                integration_responses=[
+                    aws_apigateway.IntegrationResponse(
+                        status_code=200,
+                        response_templates={
+                            "application/json": "{statusCode: 200}"
+                        }
+                    )
+                ]
+            ),
+            request_validator=aws_apigateway.RequestValidator(
+                self, "DragonPostValidator",
+                rest_api=self.api,
+                validate_request_body=True,
+                validate_request_parameters=False,
+            ),
+            request_models={"application/json": dragon_model},
+        )
+
+
+        # MOCK INTEGRATION
+        dragons_resource_v2 = self.api.root.add_resource("dragons_v2")
+        dragons_resource_v2.add_method(
             "GET",
             integration=aws_apigateway.MockIntegration(
                 integration_responses=[
@@ -159,7 +192,7 @@ class ApiGatewayConstruct(Construct):
             ),
             method_responses=[aws_apigateway.MethodResponse(status_code="200")],
         )
-        dragons_resource.add_method(
+        dragons_resource_v2.add_method(
             "POST",
             integration=aws_apigateway.MockIntegration(
                 integration_responses=[
@@ -187,7 +220,7 @@ class ApiGatewayConstruct(Construct):
             ),
             method_responses=[aws_apigateway.MethodResponse(status_code="200")],
             request_validator=aws_apigateway.RequestValidator(
-                self, "DragonPostValidator",
+                self, "DragonPostValidatorV2",
                 rest_api=self.api,
                 validate_request_body=True,
                 validate_request_parameters=False,

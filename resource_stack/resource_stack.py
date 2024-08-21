@@ -19,7 +19,7 @@ class ResourceStack(Stack):
             self, "LambdaConstruct",
             table=dragon_table.table
         )
-        dragon_table.table.grant_write_data(create_dragon_lambda.create_lambda)
+        dragon_table.table.grant_write_data(create_dragon_lambda.function)
 
         CfnOutput(
             self, "DynamoDBTableName",
