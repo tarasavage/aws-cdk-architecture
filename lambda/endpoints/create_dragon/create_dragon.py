@@ -15,7 +15,8 @@ table = dynamodb.Table(TABLE_NAME)
 
 def lambda_handler(event, context):
     try:
-        response = table.put_item(Item=event)
+        dragon = json.loads(event["body"])
+        response = table.put_item(Item=dragon)
         logger.debug(f"Item added successfully: {response}")
         return {
             "statusCode": 200,
