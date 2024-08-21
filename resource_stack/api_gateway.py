@@ -158,7 +158,7 @@ class ApiGatewayConstruct(Construct):
                 create_dragon_lambda.function,
                 integration_responses=[
                     aws_apigateway.IntegrationResponse(
-                        status_code=200,
+                        status_code="200",
                         response_templates={
                             "application/json": "{statusCode: 200}"
                         }
