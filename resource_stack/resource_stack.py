@@ -6,7 +6,6 @@ from constructs import Construct
 
 from resource_stack.api_gateway import ApiGatewayConstruct
 from resource_stack.dynamodb import DynamoDB
-from resource_stack.aws_lambda import LambdaConstruct
 
 
 class ResourceStack(Stack):
@@ -15,11 +14,6 @@ class ResourceStack(Stack):
 
         dragon_table = DynamoDB(self, "DynamoDBConstruct")
         api_gateway = ApiGatewayConstruct(self, "ApiGatewayConstruct", dragon_table.table)
-        create_dragon_lambda = LambdaConstruct(
-            self, "LambdaConstruct",
-            table=dragon_table.table
-        )
-        dragon_table.table.grant_write_data(create_dragon_lambda.function)
 
         CfnOutput(
             self, "DynamoDBTableName",

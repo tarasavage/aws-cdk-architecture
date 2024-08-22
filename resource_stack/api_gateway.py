@@ -147,15 +147,17 @@ class ApiGatewayConstruct(Construct):
         )
 
         dragon_resource = self.api.root.add_resource("dragons")
-        create_dragon_lambda = LambdaConstruct(
+
+        lambdas = LambdaConstruct(
             self, "LambdaConstruct",
             table=self.dragon_table
         )
-        self.dragon_table.grant_write_data(create_dragon_lambda.function)
+
+        self.dragon_table.grant_write_data(lambdas.create_dragon_lambda)
         dragon_resource.add_method(
             "POST",
             integration=aws_apigateway.LambdaIntegration(
-                create_dragon_lambda.function,
+                lambdas.create_dragon_lambda,
                 integration_responses=[
                     aws_apigateway.IntegrationResponse(
                         status_code="200",
@@ -174,6 +176,21 @@ class ApiGatewayConstruct(Construct):
             request_models={"application/json": dragon_model},
         )
 
+        self.dragon_table.grant_read_data(lambdas.list_dragons_lambda)
+        dragon_resource.add_method(
+            "GET",
+            integration=aws_apigateway.LambdaIntegration(
+                lambdas.list_dragons_lambda,
+                integration_responses=[
+                    aws_apigateway.IntegrationResponse(
+                        status_code="200",
+                        response_templates={
+                            "application/json": "{statusCode: 200}"
+                        }
+                    )
+                ]
+            ),
+        )
 
         # MOCK INTEGRATION
         dragons_resource_v2 = self.api.root.add_resource("dragons_v2")
