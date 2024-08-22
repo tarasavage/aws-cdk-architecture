@@ -1,6 +1,7 @@
 import os
 import boto3
 import logging
+import json
 from botocore.exceptions import ClientError
 
 logger = logging.getLogger(__name__)
@@ -30,8 +31,10 @@ def lambda_handler(event, context):
             err.response["Error"]["Code"],
             err.response["Error"]["Message"],
         )
-        raise
+        raise err
+
     return {
         "statusCode": 200,
-        "body": dragons
+        "headers": {"Content-Type": "application/json"},
+        "body": json.dumps(dragons)
     }
