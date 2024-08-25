@@ -7,9 +7,13 @@ from aws_cdk import (
 )
 from constructs import Construct
 
+from aws_cdk_architecture.settings import Settings
+
 
 class LambdaConstruct(Construct):
-    def __init__(self, scope: Construct, construct_id: str, table: aws_dynamodb.Table) -> None:
+    def __init__(
+        self, scope: Construct, construct_id: str, table: aws_dynamodb.Table
+    ) -> None:
         super().__init__(scope, construct_id)
 
         self.create_dragon = aws_lambda.Function(
@@ -32,26 +36,24 @@ class LambdaConstruct(Construct):
             self, "InitDurationMetricFilter",
             log_group=self.list_dragons.log_group,
             filter_pattern=aws_logs.FilterPattern.literal(
-                f"REPORT RequestId"
+                f"[..., InitDuration, coldStart>{Settings.INIT_DURATION_THRESHOLD_MS}, remaining]"
             ),
-            metric_name="InitDuration",
             metric_namespace="DragonService",
-            metric_value="$.initDuration",
-        )
-
-        init_duration_metric = aws_cloudwatch.Metric(
-            namespace="DragonService",
             metric_name="InitDuration",
-            dimensions_map={"FunctionName": self.list_dragons.function_name},
-            period=Duration.minutes(1),
-            statistic="Average",
-            color="#DD0000",
+            metric_value="1",
+            default_value=0,
         )
-        init_duration_metric_alarm = init_duration_metric.create_alarm(
+        init_duration_metric_alarm = aws_cloudwatch.Alarm(
             self, "InitDurationAlarm",
+            metric=init_duration_metric_filter.metric(
+                period=Duration.minutes(1),
+                color="#FF0000",
+                label="InitDurationMetric",
+                statistic="Sum",
+            ),
             evaluation_periods=1,
-            threshold=500,
-            alarm_description="Alarm if the init duration is over 500ms",
+            threshold=1,
+            alarm_description="Alarm if there are any init durations over 100ms in the ListDragons function",
             alarm_name="InitDurationAlarm",
             comparison_operator=aws_cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         )

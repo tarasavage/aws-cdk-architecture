@@ -38,3 +38,4 @@ class Settings:
     CODE_PIPELINE_ID = os.environ.get("CODE_PIPELINE_ID", "CodePipeline")
     PIPELINE_WAVE_NAME = os.environ.get("PIPELINE_WAVE_NAME", "DeploymentWave")
     SHELL_STEP_ID = os.environ.get("SHELL_STEP_ID", "ShellStep")
+    INIT_DURATION_THRESHOLD_MS = os.environ.get("INIT_DURATION_THRESHOLD_MS", 100)
