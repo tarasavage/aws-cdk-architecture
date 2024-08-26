@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from aws_cdk import (
     aws_apigateway,
     aws_dynamodb,
@@ -12,15 +14,15 @@ class ApiGatewayConstruct(Construct):
     def __init__(self, scope: Construct, construct_id: str, dragon_table: aws_dynamodb.Table) -> None:
         super().__init__(scope, construct_id)
 
-        self.dragon_table = dragon_table
-        self.api = aws_apigateway.RestApi(
+        self._dragon_table = dragon_table
+        self._api = aws_apigateway.RestApi(
             self, Settings.RESOURCE_API_GATEWAY_ID,
             rest_api_name=Settings.RESOURCE_API_GATEWAY_NAME,
             description="This service serves resources.",
             endpoint_types=[aws_apigateway.EndpointType.REGIONAL],
         )
 
-        dragon_model = self.api.add_model(
+        dragon_model = self._api.add_model(
             "DragonModel",
             model_name="DragonModel",
             content_type="application/json",
@@ -64,15 +66,14 @@ class ApiGatewayConstruct(Construct):
             ),
         )
 
-        dragon_resource = self.api.root.add_resource("dragons")
-
+        self._dragon_resource = self._api.root.add_resource("dragons")
         lambdas = LambdaConstruct(
             self, "LambdaConstruct",
-            table=self.dragon_table
+            table=self._dragon_table,
         )
 
-        self.dragon_table.grant_write_data(lambdas.create_dragon_lambda)
-        dragon_resource.add_method(
+        self._dragon_table.grant_write_data(lambdas.create_dragon_lambda)
+        self._dragon_resource.add_method(
             "POST",
             integration=aws_apigateway.LambdaIntegration(
                 lambdas.create_dragon_lambda,
@@ -87,15 +88,15 @@ class ApiGatewayConstruct(Construct):
             ),
             request_validator=aws_apigateway.RequestValidator(
                 self, "DragonPostValidator",
-                rest_api=self.api,
+                rest_api=self._api,
                 validate_request_body=True,
                 validate_request_parameters=False,
             ),
             request_models={"application/json": dragon_model},
         )
 
-        self.dragon_table.grant_read_data(lambdas.list_dragons_lambda)
-        dragon_resource.add_method(
+        self._dragon_table.grant_read_data(lambdas.list_dragons_lambda)
+        self._dragon_resource.add_method(
             "GET",
             integration=aws_apigateway.LambdaIntegration(
                 lambdas.list_dragons_lambda,
@@ -112,4 +113,8 @@ class ApiGatewayConstruct(Construct):
 
     @property
     def url(self) -> str:
-        return self.api.url
+        return self._api.url
+
+    @property
+    def dragon_resource_url(self) -> str:
+        return str(Path(self._api.url) / Path(self._dragon_resource.path).name)
