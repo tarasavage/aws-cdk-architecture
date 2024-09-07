@@ -9,7 +9,8 @@ class DynamoDB(Construct):
     def __init__(self, scope: Construct, construct_id: str) -> None:
         super().__init__(scope, construct_id)
         self.dragon_table = aws_dynamodb.Table(
-            self, "DragonTable",
+            self,
+            "DragonTable",
             partition_key=aws_dynamodb.Attribute(
                 name="dragonName",
                 type=aws_dynamodb.AttributeType.STRING,

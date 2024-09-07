@@ -5,7 +5,8 @@ from aws_cdk_architecture.settings import Settings
 
 app = cdk.App()
 AwsCdkArchitectureStack(
-    app, "AwsCdkArchitectureStack",
+    app,
+    "AwsCdkArchitectureStack",
     env=cdk.Environment(
         account=Settings.CDK_DEFAULT_ACCOUNT,
         region=Settings.CDK_DEFAULT_REGION,

@@ -17,7 +17,8 @@ class LambdaConstruct(Construct):
         super().__init__(scope, construct_id)
 
         self.create_dragon = aws_lambda.Function(
-            self, "CreateDragonLambda",
+            self,
+            "CreateDragonLambda",
             handler="create_dragon.lambda_handler",
             code=aws_lambda.Code.from_asset("lambda/endpoints/create_dragon/"),
             environment={"TABLE_NAME": table.table_name},
@@ -25,7 +26,8 @@ class LambdaConstruct(Construct):
         )
 
         self.list_dragons = aws_lambda.Function(
-            self, "ListDragonsLambda",
+            self,
+            "ListDragonsLambda",
             handler="list_dragons.lambda_handler",
             code=aws_lambda.Code.from_asset("lambda/endpoints/list_dragons/"),
             environment={"TABLE_NAME": table.table_name},
@@ -33,7 +35,8 @@ class LambdaConstruct(Construct):
         )
 
         init_duration_metric_filter = aws_logs.MetricFilter(
-            self, "InitDurationMetricFilter",
+            self,
+            "InitDurationMetricFilter",
             log_group=self.list_dragons.log_group,
             filter_pattern=aws_logs.FilterPattern.literal(
                 f"[..., InitDuration, coldStart>{Settings.INIT_DURATION_THRESHOLD_MS}, remaining]"
@@ -44,7 +47,8 @@ class LambdaConstruct(Construct):
             default_value=0,
         )
         init_duration_metric_alarm = aws_cloudwatch.Alarm(
-            self, "InitDurationAlarm",
+            self,
+            "InitDurationAlarm",
             metric=init_duration_metric_filter.metric(
                 period=Duration.minutes(1),
                 color="#FF0000",
@@ -65,7 +69,8 @@ class LambdaConstruct(Construct):
             statistic="Sum",
         )
         errors_metric.create_alarm(
-            self, "CreateDragonErrorsAlarm",
+            self,
+            "CreateDragonErrorsAlarm",
             evaluation_periods=1,
             threshold=1,
             alarm_description="Alarm if there are any errors in the CreateDragon function",

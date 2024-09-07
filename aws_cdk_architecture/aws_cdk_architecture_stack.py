@@ -45,7 +45,8 @@ class AwsCdkArchitectureStack(Stack):
         )
 
         code_pipeline = aws_codepipeline.Pipeline(
-            self, Settings.PIPELINE_ID,
+            self,
+            Settings.PIPELINE_ID,
             pipeline_name=Settings.PIPELINE_NAME,
             cross_account_keys=False,
         )
@@ -58,20 +59,20 @@ class AwsCdkArchitectureStack(Stack):
         )
 
         pipeline = pipelines.CodePipeline(
-            self, Settings.CODE_PIPELINE_ID,
+            self,
+            Settings.CODE_PIPELINE_ID,
             self_mutation=True,
             code_pipeline=code_pipeline,
             synth=synth_step,
-            code_build_defaults=pipelines.CodeBuildOptions(
-                role_policy=[ssm_policy]
-            )
+            code_build_defaults=pipelines.CodeBuildOptions(role_policy=[ssm_policy]),
         )
 
         deployment_wave = pipeline.add_wave(Settings.PIPELINE_WAVE_NAME)
 
         deployment_wave.add_stage(
             DeployStage(
-                self, Settings.RESOURCE_STACK_DEPLOY_NAME,
+                self,
+                Settings.RESOURCE_STACK_DEPLOY_NAME,
                 env=(
                     Environment(
                         account=Settings.CDK_DEFAULT_ACCOUNT,
@@ -79,5 +80,5 @@ class AwsCdkArchitectureStack(Stack):
                     )
                 ),
             ),
-            post=[pipelines.ManualApprovalStep("ApproveResourceDeployment")]
+            post=[pipelines.ManualApprovalStep("ApproveResourceDeployment")],
         )

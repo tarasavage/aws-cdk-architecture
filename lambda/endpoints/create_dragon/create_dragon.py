@@ -18,20 +18,14 @@ def lambda_handler(event, context):
         dragon = json.loads(event["body"])
         response = table.put_item(Item=dragon)
         logger.debug(f"Item added successfully: {response}")
-        return {
-            "statusCode": 200,
-            "body": json.dumps("Item added successfully")
-        }
+        return {"statusCode": 200, "body": json.dumps("Item added successfully")}
     except ClientError as e:
         error_message = e.response["Error"]["Message"]
         logger.error(f"ClientError: {error_message}")
         return {
             "statusCode": 500,
-            "body": json.dumps(f"Error adding item to DynamoDB: {error_message}")
+            "body": json.dumps(f"Error adding item to DynamoDB: {error_message}"),
         }
     except Exception as e:
         logger.error(f"Unexpected error: {str(e)}")
-        return {
-            "statusCode": 500,
-            "body": json.dumps("Unexpected error occurred")
-        }
+        return {"statusCode": 500, "body": json.dumps("Unexpected error occurred")}

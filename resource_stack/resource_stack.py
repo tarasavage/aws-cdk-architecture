@@ -15,20 +15,25 @@ class ResourceStack(Stack):
 
         dragon_table = DynamoDB(self, "DynamoDBConstruct")
         cognito_construct = CognitoConstruct(self, "CognitoConstruct")
-        api_gateway = ApiGatewayConstruct(self, "ApiGatewayConstruct", dragon_table.table)
+        api_gateway = ApiGatewayConstruct(
+            self, "ApiGatewayConstruct", dragon_table.table
+        )
         cognito_client_construct = CognitoClientConstruct(
-            self, "CognitoClientConstruct",
+            self,
+            "CognitoClientConstruct",
             user_pool=cognito_construct.user_pool,
             callback_urls=[api_gateway.dragon_resource_url],
         )
 
         CfnOutput(
-            self, "DynamoDBTableName",
+            self,
+            "DynamoDBTableName",
             value=dragon_table.table.table_name,
             export_name="DynamoDBTableName",
         )
         CfnOutput(
-            self, "ApiGatewayOutput",
+            self,
+            "ApiGatewayOutput",
             value=api_gateway.url,
             export_name="ApiGatewayUrl",
         )

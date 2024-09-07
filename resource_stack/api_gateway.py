@@ -11,12 +11,15 @@ from resource_stack.aws_lambda import LambdaConstruct
 
 
 class ApiGatewayConstruct(Construct):
-    def __init__(self, scope: Construct, construct_id: str, dragon_table: aws_dynamodb.Table) -> None:
+    def __init__(
+        self, scope: Construct, construct_id: str, dragon_table: aws_dynamodb.Table
+    ) -> None:
         super().__init__(scope, construct_id)
 
         self._dragon_table = dragon_table
         self._api = aws_apigateway.RestApi(
-            self, Settings.RESOURCE_API_GATEWAY_ID,
+            self,
+            Settings.RESOURCE_API_GATEWAY_ID,
             rest_api_name=Settings.RESOURCE_API_GATEWAY_NAME,
             description="This service serves resources.",
             endpoint_types=[aws_apigateway.EndpointType.REGIONAL],
@@ -68,7 +71,8 @@ class ApiGatewayConstruct(Construct):
 
         self._dragon_resource = self._api.root.add_resource("dragons")
         lambdas = LambdaConstruct(
-            self, "LambdaConstruct",
+            self,
+            "LambdaConstruct",
             table=self._dragon_table,
         )
 
@@ -80,14 +84,13 @@ class ApiGatewayConstruct(Construct):
                 integration_responses=[
                     aws_apigateway.IntegrationResponse(
                         status_code="200",
-                        response_templates={
-                            "application/json": "{statusCode: 200}"
-                        }
+                        response_templates={"application/json": "{statusCode: 200}"},
                     )
-                ]
+                ],
             ),
             request_validator=aws_apigateway.RequestValidator(
-                self, "DragonPostValidator",
+                self,
+                "DragonPostValidator",
                 rest_api=self._api,
                 validate_request_body=True,
                 validate_request_parameters=False,
@@ -103,11 +106,9 @@ class ApiGatewayConstruct(Construct):
                 integration_responses=[
                     aws_apigateway.IntegrationResponse(
                         status_code="200",
-                        response_templates={
-                            "application/json": "{statusCode: 200}"
-                        }
+                        response_templates={"application/json": "{statusCode: 200}"},
                     )
-                ]
+                ],
             ),
         )
 

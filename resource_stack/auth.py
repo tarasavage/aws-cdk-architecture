@@ -10,7 +10,8 @@ class CognitoConstruct(Construct):
         super().__init__(scope, construct_id)
 
         self._user_pool = _cognito.UserPool(
-            self, "UserPool",
+            self,
+            "UserPool",
             user_pool_name="DragonUserPool",
             self_sign_up_enabled=True,
             sign_in_aliases=_cognito.SignInAliases(email=True),
@@ -32,9 +33,7 @@ class CognitoConstruct(Construct):
 
         self._domain = self._user_pool.add_domain(
             "CognitoDomain",
-            cognito_domain=_cognito.CognitoDomainOptions(
-                domain_prefix="dragon-auth"
-            )
+            cognito_domain=_cognito.CognitoDomainOptions(domain_prefix="dragon-auth"),
         )
 
     @property
@@ -44,15 +43,17 @@ class CognitoConstruct(Construct):
 
 class CognitoClientConstruct(Construct):
     def __init__(
-            self, scope: Construct,
-            construct_id: str,
-            user_pool: _cognito.UserPool,
-            callback_urls: list[str],
+        self,
+        scope: Construct,
+        construct_id: str,
+        user_pool: _cognito.UserPool,
+        callback_urls: list[str],
     ) -> None:
         super().__init__(scope, construct_id)
 
         self._user_pool_client = _cognito.UserPoolClient(
-            self, "DragonUserPoolClient",
+            self,
+            "DragonUserPoolClient",
             user_pool=user_pool,
             user_pool_client_name="DragonUserPoolClient",
             generate_secret=False,
