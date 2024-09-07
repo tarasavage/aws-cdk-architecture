@@ -86,14 +86,13 @@ class DragonActivityFanoutStack(Stack):
             visibility_timeout=Duration.seconds(30),
             retention_period=Duration.days(14),
             fifo=True,
-            receive_message_wait_time=20,
+            receive_message_wait_time=Duration.seconds(20),
             removal_policy=RemovalPolicy.DESTROY,
             **kwargs,
         )
 
     def _create_queue_with_dql(self, queue_name: str) -> tuple[sqs.Queue, sqs.Queue]:
         dlq = sqs.DeadLetterQueue(
-            self,
             queue=self._create_queue(f"{queue_name}DlqQueue.fifo"),
             max_receive_count=3,
         )
