@@ -9,6 +9,7 @@ from aws_cdk import (
 from constructs import Construct
 
 from aws_cdk_architecture.settings import Settings
+from resource_stack.activity_stack import DragonActivityFanoutStack
 from resource_stack.resource_stack import ResourceStack
 
 
@@ -22,6 +23,12 @@ class DeployStage(Stage):
             construct_id=Settings.RESOURCE_CONSTRUCT_ID,
             env=env,
             stack_name=Settings.RESOURCE_STACK_NAME,
+        )
+
+        DragonActivityFanoutStack(
+            self,
+            construct_id=Settings.ACTIVITY_CONSTRUCT_ID,
+            activities=Settings.DRAGON_ACTIVITIES,
         )
 
 
